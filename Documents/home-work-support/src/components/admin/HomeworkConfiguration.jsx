@@ -648,17 +648,23 @@ function HomeworkConfiguration({ loggedInUser }) {
             <option value="Wednesday">Wednesday</option>
             <option value="Thursday">Thursday</option>
             <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
           </select>
         </label>
         <label>
           <span>Cut-off time</span>
-          <select value={bookingCutoff.time} onChange={(event) => { setBookingCutoff((currentCutoff) => ({ ...currentCutoff, time: event.target.value })); setSaved(false) }}>
-            <option value="">Select cut-off time</option>
-            <option value="09:00">9:00 AM</option>
-            <option value="12:00">12:00 PM</option>
-            <option value="15:00">3:00 PM</option>
-            <option value="18:00">6:00 PM</option>
-          </select>
+          <input
+            type="time"
+            value={bookingCutoff.time}
+            onChange={(event) => {
+              setBookingCutoff((currentCutoff) => ({
+                ...currentCutoff,
+                time: event.target.value,
+              }))
+              setSaved(false)
+            }}
+          />
         </label>
         <p className="homework-helper">This cut-off applies to all selected Homework Support weeks.</p>
       </div>

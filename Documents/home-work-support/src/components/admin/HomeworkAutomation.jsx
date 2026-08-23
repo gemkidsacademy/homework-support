@@ -99,16 +99,19 @@ function HomeworkAutomation({ loggedInUser }) {
               <option>Wednesday</option>
               <option>Thursday</option>
               <option>Friday</option>
+              <option>Sunday</option>
+              <option>Saturday</option>
             </select>
           </label>
           <label>
             <span>Invitation time</span>
-            <select value={automation.invitation_time} onChange={(event) => updateField('invitation_time', event.target.value)}>
-              <option>9:00 AM</option>
-              <option>12:00 PM</option>
-              <option>3:00 PM</option>
-              <option>6:00 PM</option>
-            </select>
+            <input
+              type="time"
+              value={automation.invitation_time}
+              onChange={(event) =>
+                updateField('invitation_time', event.target.value)
+              }
+            />
           </label>
         </div>
         <p className="homework-notice">Invitation day and time are configurable by the administrator.</p>
