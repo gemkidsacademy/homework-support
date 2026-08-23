@@ -23,8 +23,10 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
       setError('')
 
       try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || ''
+
         const response = await fetch(
-          `http://localhost:8000/homework-support/admin/responses?center_code=${encodeURIComponent(centerCode)}`
+          `${API_BASE_URL}/homework-support/admin/responses?center_code=${encodeURIComponent(centerCode)}`
         )
         const data = await response.json()
 
