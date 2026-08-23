@@ -2,13 +2,18 @@ import { useState } from 'react'
 import HomeworkConfiguration from '../components/admin/HomeworkConfiguration'
 import HomeworkWeeklyDashboard from '../components/admin/HomeworkWeeklyDashboard'
 import HomeworkAutomation from '../components/admin/HomeworkAutomation'
-
+import TestEmail from '../components/TestEmail'
 const logoUrl = 'https://gemkidsacademy.com.au/wp-content/uploads/2024/11/Frame-1707478212.svg'
 
 function AdminPanel({ loggedInUser }) {
   const [activeTab, setActiveTab] = useState('Home Work Configuration')
 
-  const tabs = ['Home Work Configuration', 'Weekly Dashboard', 'Automation']
+  const tabs = [
+  'Home Work Configuration',
+  'Weekly Dashboard',
+  'Automation',
+  'Test Email',
+]
 
   return (
     <div className="admin-panel">
@@ -51,9 +56,11 @@ function AdminPanel({ loggedInUser }) {
             {activeTab === 'Home Work Configuration' ? (
               <HomeworkConfiguration loggedInUser={loggedInUser} />
             ) : activeTab === 'Weekly Dashboard' ? (
-              <HomeworkWeeklyDashboard />
-            ) : (
+              <HomeworkWeeklyDashboard loggedInUser={loggedInUser} />
+            ) : activeTab === 'Automation' ? (
               <HomeworkAutomation loggedInUser={loggedInUser} />
+            ) : (
+              <TestEmail loggedInUser={loggedInUser} />
             )}
           </main>
       </div>

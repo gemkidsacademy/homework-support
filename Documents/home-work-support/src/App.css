@@ -504,6 +504,39 @@
 
 .homework-card-header p { margin: 6px 0 0; }
 
+.homework-card-header.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 150ms ease;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 4px;
+}
+
+.homework-card-header.collapsible-header:hover {
+  background-color: rgb(255 255 255 / 50%);
+}
+
+.collapse-indicator {
+  color: #78869b;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.homework-card-header.collapsible-week-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 150ms ease;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 4px;
+}
+
+.homework-card-header.collapsible-week-header:hover {
+  background-color: rgb(255 255 255 / 50%);
+}
+
 .slot-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -525,6 +558,45 @@
 .slot-card input { min-height: 34px; }
 
 .slot-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.available-default-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 2px dashed #d9dde1;
+  border-radius: 7px;
+  background: #f8f9fa;
+  min-height: 110px;
+}
+
+.available-default-slot > div {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+}
+
+.available-default-slot strong {
+  color: #78869b;
+  font-size: 12px;
+}
+
+.available-default-slot span {
+  color: #a1a7ad;
+  font-size: 11px;
+}
+
+.available-default-slot .status-text {
+  color: #a1a7ad;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.available-default-slot button {
+  align-self: flex-start;
+}
 
 .homework-primary-button,
 .homework-secondary-button,
@@ -606,6 +678,25 @@
 .weekly-panel-heading h3 { margin: 0; color: #263650; font-size: 15px; }
 .weekly-panel-heading p { margin: 5px 0 0; color: #8a97aa; font-size: 12px; }
 
+.response-heading-actions { display: flex; align-items: center; gap: 8px; }
+
+.response-filter {
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid #dce3ee;
+  border-radius: 4px;
+  outline: none;
+  color: #2b3a52;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+}
+
+.response-filter:focus {
+  border-color: #7fa7f1;
+  box-shadow: 0 0 0 3px rgb(40 102 232 / 10%);
+}
+
 .capacity-list { display: grid; gap: 12px; }
 
 .capacity-row {
@@ -628,7 +719,6 @@
 
 .response-table {
   width: 100%;
-  min-width: 700px;
   border-collapse: collapse;
   color: #66758c;
   font-size: 12px;
@@ -675,6 +765,7 @@
 
 .response-actions button:hover { color: #2866e8; border-color: #99b8f3; background: #f7f9ff; }
 .weekly-notice { margin: 14px 0 0; color: #3f876d; font-size: 12px; }
+.weekly-notice.weekly-error { color: #b45158; }
 
 .homework-automation {
   margin-top: 28px;

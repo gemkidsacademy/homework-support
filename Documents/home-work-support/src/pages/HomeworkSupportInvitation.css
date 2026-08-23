@@ -1,0 +1,151 @@
+.homework-invitation-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  background: #f5f7fb;
+}
+
+.homework-invitation-card {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border: 1px solid #e0e5ec;
+  border-radius: 8px;
+  padding: 22px 14px 24px;
+  box-sizing: border-box;
+}
+
+.homework-invitation-card h1 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 500;
+  color: #10233f;
+}
+
+.homework-invitation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 22px;
+  font-size: 10px;
+  color: #10233f;
+}
+
+.homework-invitation-details strong {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.homework-invitation-details span {
+  font-size: 10px;
+}
+
+.homework-invitation-card h2 {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #10233f;
+}
+
+.homework-response-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.homework-response-buttons button {
+  width: 100%;
+  height: 31px;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.homework-attend-button {
+  background: #2864e8;
+}
+
+.homework-attend-button:hover {
+  background: #2058d4;
+}
+
+.homework-not-attend-button {
+  background: #087f75;
+}
+
+.homework-not-attend-button:hover {
+  background: #066f67;
+}
+
+.homework-change-response {
+  display: block;
+  margin: 18px auto 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #2864e8;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.homework-response-message {
+  margin-top: 16px;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  background: #f1f6ff;
+  color: #2864e8;
+  font-size: 11px;
+}
+.homework-not-attending-message {
+  margin-bottom: 24px;
+}
+
+.homework-not-attending-message p {
+  margin: 0 0 18px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #10233f;
+}
+
+.homework-not-attending-message p:last-child {
+  margin-bottom: 0;
+}
+
+.homework-submit-response-button {
+  width: 100%;
+  height: 31px;
+  border: none;
+  border-radius: 6px;
+  background: #2864e8;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.homework-submit-response-button:hover {
+  background: #2058d4;
+}
+
+.homework-response-error,
+.homework-response-success {
+  margin: 16px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.homework-response-error {
+  color: #b42318;
+}
+
+.homework-response-success {
+  color: #087f75;
+}

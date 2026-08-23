@@ -1,21 +1,89 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-const initialStudents = [
-  { id: 1, name: 'Ava Johnson', status: 'Attending', slot: '9:00 AM - 9:30 AM' },
-  { id: 2, name: 'Noah Williams', status: 'Not Attending', slot: '-' },
-  { id: 3, name: 'Mia Brown', status: 'No Response', slot: '-' },
-]
-
-function HomeworkWeeklyDashboard() {
-  const [students, setStudents] = useState(initialStudents)
+function HomeworkWeeklyDashboard({ loggedInUser }) {
+  const [dashboardData, setDashboardData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [studentFilter, setStudentFilter] = useState('ALL')
 
+  const centerCode = loggedInUser?.center_code
+
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadDashboard() {
+      if (!centerCode) {
+        setLoading(false)
+        setError('Unable to load the weekly dashboard because no center is configured.')
+        return
+      }
+
+      setLoading(true)
+      setError('')
+
+      try {
+        const response = await fetch(
+          `http://localhost:8000/homework-support/admin/responses?center_code=${encodeURIComponent(centerCode)}`
+        )
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data?.detail === 'string'
+              ? data.detail
+              : 'Unable to load the weekly dashboard.'
+          )
+        }
+
+        if (isCurrent) {
+          setDashboardData(data)
+        }
+      } catch (loadError) {
+        if (isCurrent) {
+          setError(loadError.message || 'Unable to load the weekly dashboard.')
+        }
+      } finally {
+        if (isCurrent) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadDashboard()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [centerCode])
+
+  if (loading) {
+    return <p className="weekly-notice" role="status">Loading weekly dashboard...</p>
+  }
+
+  if (error) {
+    return <p className="weekly-notice weekly-error" role="alert">{error}</p>
+  }
+
+  const students = dashboardData?.students || []
+  const visibleStudents = studentFilter === 'ALL'
+    ? students
+    : students.filter((student) => student.response === studentFilter)
+  const slots = dashboardData?.slots || []
+  const summaryData = dashboardData?.summary || {}
   const summary = [
-    ['Total Students', students.length, 'Registered for this week', 'total'],
-    ['Attending', students.filter((student) => student.status === 'Attending').length, 'Confirmed attendance', 'attending'],
-    ['Not Attending', students.filter((student) => student.status === 'Not Attending').length, 'Declined attendance', 'declined'],
-    ['No Response', students.filter((student) => student.status === 'No Response').length, 'Awaiting response', 'pending'],
+    ['Total Students', summaryData.total_students, 'Registered for this week', 'total'],
+    ['Attending', summaryData.attending, 'Confirmed attendance', 'attending'],
+    ['Not Attending', summaryData.not_attending, 'Declined attendance', 'declined'],
+    ['No Response', summaryData.no_response, 'Awaiting response', 'pending'],
   ]
+
+  function formatResponse(response) {
+    return response
+      .toLowerCase()
+      .replace('_', ' ')
+      .replace(/\b\w/g, (character) => character.toUpperCase())
+  }
 
   function showNotice(message) {
     setNotice(message)
@@ -49,14 +117,25 @@ function HomeworkWeeklyDashboard() {
         <div className="weekly-panel-heading">
           <div>
             <h3 id="capacity-title">Slot Capacity Status</h3>
-            <p>Saturday, August 29, 2026</p>
+            <p>{dashboardData.session_date}</p>
           </div>
-          <button className="homework-secondary-button" type="button" onClick={() => showNotice('Capacity editor is ready for backend integration.')}>Edit Capacity</button>
         </div>
         <div className="capacity-list">
-          <div className="capacity-row"><strong>9:00 AM - 9:30 AM</strong><span>8 / 12 booked</span><div className="capacity-track"><i style={{ width: '67%' }} /></div><button className="homework-secondary-button" type="button" onClick={() => showNotice('Slot closed for this demo.')}>Close Slot</button></div>
-          <div className="capacity-row"><strong>9:30 AM - 10:00 AM</strong><span>12 / 12 booked</span><div className="capacity-track full"><i style={{ width: '100%' }} /></div><button className="homework-secondary-button" type="button" onClick={() => showNotice('Slot reopened for this demo.')}>Reopen Slot</button></div>
-          <div className="capacity-row"><strong>10:00 AM - 10:30 AM</strong><span>4 / 12 booked</span><div className="capacity-track"><i style={{ width: '34%' }} /></div><button className="homework-secondary-button" type="button" onClick={() => showNotice('Slot closed for this demo.')}>Close Slot</button></div>
+          {slots.map((slot) => {
+            const progress = slot.capacity
+              ? Math.min((slot.booked / slot.capacity) * 100, 100)
+              : 0
+
+            return (
+              <div className="capacity-row" key={slot.id}>
+                <strong>{slot.start_time} - {slot.end_time}</strong>
+                <span>{slot.booked} / {slot.capacity} booked</span>
+                <div className={`capacity-track${slot.is_full ? ' full' : ''}`}>
+                  <i style={{ width: `${progress}%` }} />
+                </div>
+              </div>
+            )
+          })}
         </div>
       </section>
 
@@ -66,25 +145,31 @@ function HomeworkWeeklyDashboard() {
             <h3 id="responses-title">Student Responses</h3>
             <p>Parent attendance responses for this week</p>
           </div>
-          <button className="homework-primary-button" type="button" onClick={() => showNotice('Add Student form is ready for backend integration.')}>Add Student</button>
+          <div className="response-heading-actions">
+            <label className="sr-only" htmlFor="student-response-filter">Filter students by response</label>
+            <select
+              id="student-response-filter"
+              className="response-filter"
+              value={studentFilter}
+              onChange={(event) => setStudentFilter(event.target.value)}
+            >
+              <option value="ALL">All Students</option>
+              <option value="ATTENDING">Attending</option>
+              <option value="NOT_ATTENDING">Not Attending</option>
+              <option value="NO_RESPONSE">No Response</option>
+            </select>
+            
+          </div>
         </div>
         <div className="response-table-wrap">
           <table className="response-table">
-            <thead><tr><th>Student</th><th>Response</th><th>Time Slot</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Student</th><th>Response</th><th>Time Slot</th></tr></thead>
             <tbody>
-              {students.map((student) => (
-                <tr key={student.id}>
-                  <td><strong>{student.name}</strong></td>
-                  <td><span className={`response-status ${student.status.toLowerCase().replace(' ', '-')}`}>{student.status}</span></td>
-                  <td>{student.slot}</td>
-                  <td>
-                    <div className="response-actions">
-                      <button type="button" onClick={() => showNotice('Slot change is ready for backend integration.')}>Change Slot</button>
-                      <button type="button" onClick={() => markNotAttending(student.id)}>Mark Not Attending</button>
-                      <button type="button" onClick={() => showNotice('Email resent for this demo.')}>Resend Email</button>
-                      <button type="button" onClick={() => removeStudent(student.id)}>Cancel Booking</button>
-                    </div>
-                  </td>
+              {visibleStudents.map((student) => (
+                <tr key={student.student_id}>
+                  <td><strong>{student.student_name}</strong></td>
+                  <td><span className={`response-status ${student.response.toLowerCase().replace('_', '-')}`}>{formatResponse(student.response)}</span></td>
+                  <td>{student.time_slot}</td>
                 </tr>
               ))}
             </tbody>

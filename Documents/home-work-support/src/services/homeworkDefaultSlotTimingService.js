@@ -45,7 +45,6 @@ function normalizeDefaultSlotTimings(payload) {
     ? timings
       .slice()
       .sort((firstTiming, secondTiming) => (firstTiming.slot_order || 0) - (secondTiming.slot_order || 0))
-      .slice(0, 1)
       .map((timing, index) => ({
         ...timing,
         slot_order: timing.slot_order || index + 1,
@@ -67,10 +66,10 @@ export async function updateDefaultSlotTimings(loggedInUser, defaultSlotTimings)
     method: 'PUT',
     headers: getHeaders(loggedInUser),
     body: JSON.stringify({
-      default_slot_timings: defaultSlotTimings.map((timing, index) => ({
+      default_slot_timings: defaultSlotTimings.map((timing) => ({
         start_time: timing.start_time,
         end_time: timing.end_time,
-        slot_order: index + 1,
+        slot_order: timing.slot_order || 1,
       })),
     }),
   })

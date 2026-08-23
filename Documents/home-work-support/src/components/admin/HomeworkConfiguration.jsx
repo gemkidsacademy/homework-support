@@ -26,9 +26,9 @@ function createEmptyTimeSlot(weekNumber, timing = {}, defaultSlotIndex = null) {
 }
 
 function createSlotsForWeek(weekNumber, defaultSlotTimings) {
-  if (defaultSlotTimings.length === 0) return [createEmptyTimeSlot(weekNumber)]
-
-  return defaultSlotTimings.map((timing, index) => createEmptyTimeSlot(weekNumber, timing, index))
+  // For new weeks with no configuration, don't create any pre-filled slots
+  // The admin will add defaults or custom slots as needed via the buttons
+  return []
 }
 
 function ensureInitialTimeSlots(selectedSessions, configuredSlots, defaultSlotTimings) {
@@ -36,20 +36,16 @@ function ensureInitialTimeSlots(selectedSessions, configuredSlots, defaultSlotTi
   const validSlots = configuredSlots
     .filter((slot) => selectedWeekNumbers.has(slot.week_number))
     .map((slot) => {
-      const weekSlots = configuredSlots.filter((currentSlot) => currentSlot.week_number === slot.week_number)
-      const slotIndex = weekSlots.indexOf(slot)
-      const defaultTiming = defaultSlotTimings[slotIndex]
-      const matchesDefault = defaultTiming
-        && (!slot.start_time || !slot.end_time
-          || (slot.start_time === defaultTiming.start_time && slot.end_time === defaultTiming.end_time))
-
-      return {
-        ...slot,
-        start_time: slot.start_time || defaultTiming?.start_time || '',
-        end_time: slot.end_time || defaultTiming?.end_time || '',
-        uses_default_timing: slot.uses_default_timing ?? Boolean(matchesDefault),
-        default_slot_index: slot.default_slot_index ?? (matchesDefault ? slotIndex : null),
+      // Only fill in missing times if the slot explicitly uses a default
+      let filledSlot = { ...slot }
+      if (slot.uses_default_timing && slot.default_slot_index !== null && slot.default_slot_index !== undefined) {
+        const defaultTiming = defaultSlotTimings[slot.default_slot_index]
+        if (defaultTiming) {
+          filledSlot.start_time = slot.start_time || defaultTiming.start_time || ''
+          filledSlot.end_time = slot.end_time || defaultTiming.end_time || ''
+        }
       }
+      return filledSlot
     })
   const weeksWithSlots = new Set(validSlots.map((slot) => slot.week_number))
   const initialSlots = selectedSessions
@@ -107,6 +103,8 @@ function HomeworkConfiguration({ loggedInUser }) {
   const [isSavingDefaults, setIsSavingDefaults] = useState(false)
   const [defaultTimingError, setDefaultTimingError] = useState('')
   const [defaultTimingSaved, setDefaultTimingSaved] = useState(false)
+  const [isSessionsExpanded, setIsSessionsExpanded] = useState(true)
+  const [expandedWeeks, setExpandedWeeks] = useState({})
 
   function applyConfiguration(configuration) {
     const selectedSessions = configuration.selected_sessions
@@ -164,6 +162,19 @@ function HomeworkConfiguration({ loggedInUser }) {
     }
   }, [loggedInUser])
 
+  useEffect(() => {
+    // Initialize expanded weeks: first week expanded, others collapsed
+    if (sessions.length > 0) {
+      const newExpandedWeeks = {}
+      sessions.forEach((session, index) => {
+        newExpandedWeeks[session.week_number] = index === 0
+      })
+      setExpandedWeeks(newExpandedWeeks)
+    } else {
+      setExpandedWeeks({})
+    }
+  }, [sessions])
+
   function removeSession(sessionId) {
     setSessions((currentSessions) => currentSessions.filter((session) => session.week_number !== sessionId))
     setSlots((currentSlots) => currentSlots.filter((slot) => slot.week_number !== sessionId))
@@ -182,6 +193,26 @@ function HomeworkConfiguration({ loggedInUser }) {
     setSlots((currentSlots) => [
       ...currentSlots,
       ...initialSlots,
+    ])
+    setSelectedWeek('')
+    setSaved(false)
+  }
+
+  function addAllSessions() {
+    const selectedWeekNumbers = new Set(sessions.map((session) => session.week_number))
+    const weeksToAdd = availableWeeks.filter((week) => !selectedWeekNumbers.has(week.week_number))
+
+    if (weeksToAdd.length === 0) return
+
+    const newSlots = weeksToAdd.flatMap((week) => createSlotsForWeek(week.week_number, defaultSlotTimings))
+
+    setSessions((currentSessions) => [
+      ...currentSessions,
+      ...weeksToAdd,
+    ])
+    setSlots((currentSlots) => [
+      ...currentSlots,
+      ...newSlots,
     ])
     setSelectedWeek('')
     setSaved(false)
@@ -223,6 +254,27 @@ function HomeworkConfiguration({ loggedInUser }) {
     setSaved(false)
   }
 
+  function addDefaultSlotToWeek(weekNumber, defaultSlotIndex) {
+    const defaultTiming = defaultSlotTimings[defaultSlotIndex]
+    if (!defaultTiming) return
+
+    const newSlot = {
+      id: `new-${Date.now()}-${++localSlotId}`,
+      week_number: weekNumber,
+      start_time: defaultTiming.start_time,
+      end_time: defaultTiming.end_time,
+      capacity: '',
+      uses_default_timing: true,
+      default_slot_index: defaultSlotIndex,
+    }
+
+    setSlots((currentSlots) => [
+      ...currentSlots,
+      newSlot,
+    ])
+    setSaved(false)
+  }
+
   function updateCapacity(slotId, capacity) {
     setSlots((currentSlots) => currentSlots.map((slot) => (
       slot.id === slotId ? { ...slot, capacity } : slot
@@ -232,9 +284,37 @@ function HomeworkConfiguration({ loggedInUser }) {
 
   function updateDefaultTiming(index, field, value) {
     setDefaultSlotTimings((currentTimings) => {
-      const currentTiming = currentTimings[0] || { start_time: '', end_time: '', slot_order: 1 }
-      return [{ ...currentTiming, [field]: value, slot_order: 1 }]
+      const updated = [...currentTimings]
+      if (!updated[index]) {
+        updated[index] = { start_time: '', end_time: '', slot_order: index + 1 }
+      }
+      updated[index] = { ...updated[index], [field]: value }
+      return updated
     })
+    setDefaultTimingError('')
+    setDefaultTimingSaved(false)
+  }
+
+  function addDefaultSlot() {
+    setDefaultSlotTimings((currentTimings) => {
+      const maxSlotOrder = currentTimings.length > 0
+        ? Math.max(...currentTimings.map((t) => t.slot_order || 0))
+        : 0
+      return [
+        ...currentTimings,
+        {
+          start_time: '',
+          end_time: '',
+          slot_order: maxSlotOrder + 1,
+        },
+      ]
+    })
+    setDefaultTimingError('')
+    setDefaultTimingSaved(false)
+  }
+
+  function removeDefaultSlot(index) {
+    setDefaultSlotTimings((currentTimings) => currentTimings.filter((_, i) => i !== index))
     setDefaultTimingError('')
     setDefaultTimingSaved(false)
   }
@@ -246,6 +326,20 @@ function HomeworkConfiguration({ loggedInUser }) {
 
     if (hasIncompleteTiming) {
       setDefaultTimingError('Please complete all default slot timing fields before saving.')
+      return
+    }
+
+    const hasInvalidEndTime = defaultSlotTimings.some((timing) => {
+      if (!timing.start_time || !timing.end_time) return false
+      const [startH, startM] = timing.start_time.split(':').map(Number)
+      const [endH, endM] = timing.end_time.split(':').map(Number)
+      const startMinutes = startH * 60 + startM
+      const endMinutes = endH * 60 + endM
+      return endMinutes <= startMinutes
+    })
+
+    if (hasInvalidEndTime) {
+      setDefaultTimingError('End time must be later than start time for all default slots.')
       return
     }
 
@@ -328,6 +422,8 @@ function HomeworkConfiguration({ loggedInUser }) {
           start_time: slot.start_time,
           end_time: slot.end_time,
           capacity: Number(slot.capacity) || 0,
+          uses_default_timing: slot.uses_default_timing || false,
+          default_slot_index: slot.default_slot_index ?? null,
         })),
         booking_cutoff: bookingCutoff,
       })
@@ -362,8 +458,16 @@ function HomeworkConfiguration({ loggedInUser }) {
         </label>
         <label>
           <span>Select Homework Support Week</span>
-          <select value={selectedWeek} onChange={(event) => setSelectedWeek(event.target.value)} disabled={!selectedTermId || isLoadingWeeks}>
+          <select value={selectedWeek} onChange={(event) => {
+            const value = event.target.value
+            if (value === 'SELECT_ALL') {
+              addAllSessions()
+            } else {
+              setSelectedWeek(value)
+            }
+          }} disabled={!selectedTermId || isLoadingWeeks}>
             <option value="">Select a week</option>
+            <option value="SELECT_ALL">Select All Weeks</option>
             {availableWeeks.map((week) => (
               <option value={week.week_number} key={week.week_number}>{week.week_label}</option>
             ))}
@@ -376,20 +480,25 @@ function HomeworkConfiguration({ loggedInUser }) {
       <button className="homework-secondary-button" type="button" onClick={addSession} disabled={!selectedWeek || isLoadingWeeks}>Add Selected Week</button>
 
       <section className="homework-card" aria-labelledby="selected-sessions-title">
-        <h3 id="selected-sessions-title">Selected Homework Support Sessions</h3>
-        <div className="session-list">
-          {sessions.map((session) => (
-            <article className="session-row" key={session.week_number}>
-              <div>
-                <strong>{session.week_label}</strong>
-                <span>{session.session_day} Session</span>
-                <small>{formatSessionDate(session.session_date)}</small>
-              </div>
-              <button type="button" className="homework-danger-button" onClick={() => removeSession(session.week_number)}>Remove</button>
-            </article>
-          ))}
-          {sessions.length === 0 && <p className="homework-empty">No Homework Support sessions selected.</p>}
+        <div className="homework-card-header collapsible-header" onClick={() => setIsSessionsExpanded((current) => !current)}>
+          <h3 id="selected-sessions-title">Selected Homework Support Sessions</h3>
+          <span className="collapse-indicator">{isSessionsExpanded ? '▲' : '▼'}</span>
         </div>
+        {isSessionsExpanded && (
+          <div className="session-list">
+            {sessions.map((session) => (
+              <article className="session-row" key={session.week_number}>
+                <div>
+                  <strong>{session.week_label}</strong>
+                  <span>{session.session_day} Session</span>
+                  <small>{formatSessionDate(session.session_date)}</small>
+                </div>
+                <button type="button" className="homework-danger-button" onClick={() => removeSession(session.week_number)}>Remove</button>
+              </article>
+            ))}
+            {sessions.length === 0 && <p className="homework-empty">No Homework Support sessions selected.</p>}
+          </div>
+        )}
       </section>
 
       <section className="homework-card" aria-labelledby="slots-title">
@@ -411,18 +520,33 @@ function HomeworkConfiguration({ loggedInUser }) {
               </div>
             </div>
             <div className="slot-grid">
-              <article className="slot-card">
-                <label>
-                  <span>Start Time</span>
-                  <input type="time" value={defaultSlotTimings[0]?.start_time || ''} onChange={(event) => updateDefaultTiming(0, 'start_time', event.target.value)} />
-                </label>
-                <label>
-                  <span>End Time</span>
-                  <input type="time" value={defaultSlotTimings[0]?.end_time || ''} onChange={(event) => updateDefaultTiming(0, 'end_time', event.target.value)} />
-                </label>
-              </article>
+              {defaultSlotTimings.map((timing, index) => (
+                <article className="slot-card" key={index}>
+                  <h4>Default Slot {timing.slot_order || index + 1}</h4>
+                  <label>
+                    <span>Start Time</span>
+                    <input type="time" value={timing.start_time || ''} onChange={(event) => updateDefaultTiming(index, 'start_time', event.target.value)} />
+                  </label>
+                  <label>
+                    <span>End Time</span>
+                    <input type="time" value={timing.end_time || ''} onChange={(event) => updateDefaultTiming(index, 'end_time', event.target.value)} />
+                  </label>
+                  <div className="slot-actions">
+                    <button
+                      type="button"
+                      className="homework-danger-button"
+                      onClick={() => removeDefaultSlot(index)}
+                    >
+                      Remove Default Slot
+                    </button>
+                  </div>
+                </article>
+              ))}
             </div>
-            {defaultSlotTimings.length === 0 && <p className="homework-empty">No default slot timing configured yet. Enter a start and end time to create one.</p>}
+            {defaultSlotTimings.length === 0 && <p className="homework-empty">No default slot timing configured yet. Click "+ Add Default Slot" to create one.</p>}
+            <div className="configuration-footer">
+              <button className="homework-secondary-button" type="button" onClick={addDefaultSlot}>+ Add Default Slot</button>
+            </div>
             {defaultTimingError && <p className="homework-notice" role="alert">{defaultTimingError}</p>}
             <div className="configuration-footer">
               <button className="homework-primary-button" type="button" onClick={saveDefaultTimings} disabled={isSavingDefaults}>{isSavingDefaults ? 'Saving default timing...' : 'Save Default Timing'}</button>
@@ -433,33 +557,78 @@ function HomeworkConfiguration({ loggedInUser }) {
         {sessions.length === 0 && <p className="homework-empty">No Homework Support weeks selected.</p>}
         {sessions.map((session) => {
           const weekSlots = slots.filter((slot) => slot.week_number === session.week_number)
+          const isWeekExpanded = expandedWeeks[session.week_number] ?? true
 
           return (
             <section className="homework-card" aria-labelledby={`week-slots-${session.week_number}`} key={session.week_number}>
-              <div className="homework-card-header">
+              <div className="homework-card-header collapsible-week-header" onClick={() => setExpandedWeeks((current) => ({ ...current, [session.week_number]: !current[session.week_number] }))}>
                 <div>
                   <h3 id={`week-slots-${session.week_number}`}>{session.week_label}</h3>
                   <p>{session.session_day} Session: {formatSessionDate(session.session_date)}</p>
                 </div>
-                <button className="homework-secondary-button" type="button" onClick={() => addTimeSlotForWeek(session.week_number)}>+ Add Time Slot</button>
+                <span className="collapse-indicator">{isWeekExpanded ? '▲' : '▼'}</span>
               </div>
-              <div className="slot-grid">
-                {weekSlots.map((slot) => (
-                  <article className="slot-card" key={slot.id}>
-                    <strong>{formatSlot(slot)}</strong>
-                    <small>{slot.uses_default_timing ? 'Default slot timing' : 'Custom slot timing'}</small>
-                    <label>
-                      <span>Maximum capacity</span>
-                      <input type="number" min="0" value={slot.capacity} onChange={(event) => updateCapacity(slot.id, event.target.value)} />
-                    </label>
-                    <div className="slot-actions">
-                      <button type="button" className="homework-secondary-button" onClick={() => editTimeSlot(slot.id)}>Edit Time Slot</button>
-                      <button type="button" className="homework-danger-button" onClick={() => removeTimeSlot(slot.id)}>Remove Time Slot</button>
+
+              {isWeekExpanded && (
+                <>
+                  {defaultSlotTimings.length > 0 && (
+                    <div className="slot-grid">
+                      {defaultSlotTimings.map((defaultSlot, defaultSlotIndex) => {
+                        const isAdded = weekSlots.some((slot) => slot.uses_default_timing && slot.default_slot_index === defaultSlotIndex)
+                        return !isAdded ? (
+                          <article key={`available-${defaultSlotIndex}`} className="available-default-slot">
+                            <div>
+                              <strong>Default Slot {defaultSlot.slot_order || defaultSlotIndex + 1}</strong>
+                              <span>{formatTime(defaultSlot.start_time)} - {formatTime(defaultSlot.end_time)}</span>
+                              <span className="status-text">Not added to this week</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="homework-secondary-button"
+                              onClick={() => addDefaultSlotToWeek(session.week_number, defaultSlotIndex)}
+                            >
+                              + Add
+                            </button>
+                          </article>
+                        ) : null
+                      })}
                     </div>
-                  </article>
-                ))}
-                {weekSlots.length === 0 && <p className="homework-empty">No time slots configured.</p>}
-              </div>
+                  )}
+
+                  <div className="slot-grid">
+                    {weekSlots.map((slot) => (
+                      <article className="slot-card" key={slot.id}>
+                        <strong>{formatSlot(slot)}</strong>
+                        <small>{slot.uses_default_timing ? `Default slot ${defaultSlotTimings[slot.default_slot_index]?.slot_order || slot.default_slot_index + 1}` : 'Custom slot timing'}</small>
+                        <label>
+                          <span>Maximum capacity</span>
+                          <input type="number" min="0" value={slot.capacity} onChange={(event) => updateCapacity(slot.id, event.target.value)} />
+                        </label>
+                        <div className="slot-actions">
+                          <button type="button" className="homework-secondary-button" onClick={() => editTimeSlot(slot.id)}>Edit Time Slot</button>
+                          <button
+                            type="button"
+                            className="homework-danger-button"
+                            disabled={slot.booking_count > 0}
+                            onClick={() => {
+                              if (slot.booking_count > 0) return
+                              removeTimeSlot(slot.id)
+                            }}
+                          >
+                            Remove Time Slot
+                          </button>
+                          {slot.booking_count > 0 && <p>Cannot remove this slot because a parent booking already exists.</p>}
+                        </div>
+                      </article>
+                    ))}
+                    {weekSlots.length === 0 && <p className="homework-empty">No time slots configured.</p>}
+                  </div>
+
+                  <div className="configuration-footer">
+                    <button className="homework-secondary-button" type="button" onClick={() => addTimeSlotForWeek(session.week_number)}>+ Add Time Slot</button>
+                  </div>
+                </>
+              )}
             </section>
           )
         })}
