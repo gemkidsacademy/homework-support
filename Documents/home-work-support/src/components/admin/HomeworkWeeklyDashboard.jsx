@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function HomeworkWeeklyDashboard({ loggedInUser }) {
   const [dashboardData, setDashboardData] = useState(null)
@@ -6,16 +6,65 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [studentFilter, setStudentFilter] = useState('ALL')
+  const [weeks, setWeeks] = useState([])
+  const [selectedWeek, setSelectedWeek] = useState(null)
+  const weeksLoaded = useRef(false)
 
   const centerCode = loggedInUser?.center_code
 
+  // Load available weeks
+  useEffect(() => {
+    let isCurrent = true
+
+    async function loadWeeks() {
+      if (!centerCode) {
+        setError('Unable to load the weekly dashboard because no center is configured.')
+        setLoading(false)
+        return
+      }
+
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || ''
+
+        const response = await fetch(
+          `${API_BASE_URL}/homework-support/admin/weeks?center_code=${encodeURIComponent(centerCode)}`
+        )
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(
+            typeof data?.detail === 'string'
+              ? data.detail
+              : 'Unable to load available weeks.'
+          )
+        }
+
+        if (isCurrent) {
+          setWeeks(data.weeks || [])
+          setSelectedWeek(data.current_week_number)
+          weeksLoaded.current = true
+        }
+      } catch (loadError) {
+        if (isCurrent) {
+          setError(loadError.message || 'Unable to load available weeks.')
+          setLoading(false)
+        }
+      }
+    }
+
+    loadWeeks()
+
+    return () => {
+      isCurrent = false
+    }
+  }, [centerCode])
+
+  // Load dashboard data based on selected week
   useEffect(() => {
     let isCurrent = true
 
     async function loadDashboard() {
-      if (!centerCode) {
-        setLoading(false)
-        setError('Unable to load the weekly dashboard because no center is configured.')
+      if (!centerCode || selectedWeek === null) {
         return
       }
 
@@ -25,8 +74,13 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
       try {
         const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || ''
 
+        const params = new URLSearchParams({
+          center_code: centerCode,
+          week_number: String(selectedWeek),
+        })
+
         const response = await fetch(
-          `${API_BASE_URL}/homework-support/admin/responses?center_code=${encodeURIComponent(centerCode)}`
+          `${API_BASE_URL}/homework-support/admin/responses?${params.toString()}`
         )
         const data = await response.json()
 
@@ -57,7 +111,7 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
     return () => {
       isCurrent = false
     }
-  }, [centerCode])
+  }, [centerCode, selectedWeek])
 
   if (loading) {
     return <p className="weekly-notice" role="status">Loading weekly dashboard...</p>
@@ -74,7 +128,7 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
   const slots = dashboardData?.slots || []
   const summaryData = dashboardData?.summary || {}
   const summary = [
-    ['Total Students', summaryData.total_students, 'Registered for this week', 'total'],
+    ['Total Students', summaryData.total_students, `Registered for Week ${dashboardData?.week_number}`, 'total'],
     ['Attending', summaryData.attending, 'Confirmed attendance', 'attending'],
     ['Not Attending', summaryData.not_attending, 'Declined attendance', 'declined'],
     ['No Response', summaryData.no_response, 'Awaiting response', 'pending'],
@@ -105,6 +159,31 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
 
   return (
     <section className="weekly-dashboard" aria-labelledby="weekly-dashboard-title">
+      <div className="weekly-week-selector">
+        <label htmlFor="weekly-dashboard-week">
+          Week
+        </label>
+        <select
+          id="weekly-dashboard-week"
+          value={selectedWeek || ''}
+          onChange={(event) => {
+            setSelectedWeek(Number(event.target.value))
+            setStudentFilter('ALL')
+          }}
+          disabled={weeks.length === 0}
+        >
+          {weeks.map((week) => (
+            <option
+              key={week.week_number}
+              value={week.week_number}
+            >
+              {week.week_label}
+              {week.is_current ? ' - Current' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="weekly-summary-grid" aria-label="Weekly attendance summary">
         {summary.map(([label, value, description, tone]) => (
           <article className={`weekly-summary-card ${tone}`} key={label}>
@@ -145,7 +224,9 @@ function HomeworkWeeklyDashboard({ loggedInUser }) {
         <div className="weekly-panel-heading">
           <div>
             <h3 id="responses-title">Student Responses</h3>
-            <p>Parent attendance responses for this week</p>
+            <p>
+              Parent attendance responses for Week {dashboardData?.week_number}
+            </p>
           </div>
           <div className="response-heading-actions">
             <label className="sr-only" htmlFor="student-response-filter">Filter students by response</label>

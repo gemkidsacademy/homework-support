@@ -451,8 +451,12 @@ function HomeworkConfiguration({ loggedInUser }) {
           <span>Academic Term</span>
           <select value={selectedTermId} onChange={changeAcademicTerm} disabled={isLoadingWeeks}>
             <option value="">Select an academic term</option>
-            {academicTerms.map((term) => (
-              <option value={term.id} key={term.id}>{term.term_name}</option>
+            {academicTerms
+            .filter((term) => term.is_active)
+            .map((term) => (
+              <option value={term.id} key={term.id}>
+                {term.term_name}
+              </option>
             ))}
           </select>
         </label>
