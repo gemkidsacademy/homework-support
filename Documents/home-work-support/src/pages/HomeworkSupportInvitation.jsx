@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import './HomeworkSupportInvitation.css'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || ''
+
 function HomeworkSupportInvitation() {
   const { state } = useLocation()
   const navigate = useNavigate()
@@ -26,7 +28,7 @@ function HomeworkSupportInvitation() {
 
     try {
       const apiResponse = await fetch(
-        'http://localhost:8000/homework-support/parent/time-slots',
+        `${API_BASE_URL}/homework-support/parent/time-slots`,
         {
           method: 'POST',
           headers: {
@@ -73,7 +75,7 @@ function HomeworkSupportInvitation() {
 
     try {
       const apiResponse = await fetch(
-        'http://localhost:8000/homework-support/parent/response',
+        `${API_BASE_URL}/homework-support/parent/response`,
         {
           method: 'POST',
           headers: {
