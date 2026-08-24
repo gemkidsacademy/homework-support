@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './HomeworkSupportPage.css'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL?.trim() || ''
+
 function HomeworkSupportPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,7 +23,7 @@ function HomeworkSupportPage() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/homework-support/parent/invitation',
+        `${API_BASE_URL}/homework-support/parent/invitation`,
         {
           method: 'POST',
           headers: {
