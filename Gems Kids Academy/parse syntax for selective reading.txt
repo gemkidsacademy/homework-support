@@ -1,0 +1,167 @@
+:parse syntax for selective reading for showing extract questions:
+=== EXAM START ===
+question_type: comparative_analysis
+METADATA:
+CLASS: "Selective"
+CLASS_YEAR: "6"
+SUBJECT: "Reading Comprehension"
+TOPIC: "Comparative Analysis"
+DIFFICULTY: "Hard"
+Total_Questions: 8
+Reading_Material:
+
+Extract A 
+From 'The Varnished Truth' (Fiction)
+The atelier smelled of turpentine and the slow, sweet decay of canvas. Elara held her breath as she lowered the scalpel, her hand hovering over the cracked surface of the 17th-century portrait. For three weeks, she had been removing the ‘overpaint’, the clumsy, heavy-handed additions made by a Victorian restorer who had decided the subject’s nose was too aquiline, her expression too severe. Elara was not just cleaning; she was excavating.
+Under the microscope, the landscape of the painting was a tectonic disaster. Fissures of age ran through the pigment like dry riverbeds. She applied the solvent gel with a cotton swab no larger than a tear, watching as the dull, yellowed varnish dissolved to reveal a shocking, vibrant lapis lazuli underneath. It felt invasive, almost surgical. She was stripping away a century of history to find a truth that no living eyes had seen.
+Yet, a cold doubt gnawed at her. As the Victorian layer vanished, the face that emerged was not merely sterner, but undeniably cruel. The eyes possessed a cold, mercantile glint that the previous restorer had softened into maternal warmth. Elara paused, the solvent fume heady in her lungs. She realized she was acting as a judge, deciding which version of the past deserved to exist. By resurrecting the original master’s hand, she was erasing the story of the painting’s survival, the modifications that had made it palatable to generations of owners. Was she revealing the truth, or merely destroying the evidence of how the world had needed to see this woman? The woman in the portrait stared back, imperious and ungrateful, daring Elara to continue the erasure.
+
+Extract B 
+From 'The Ship of Theseus in the Museum' (Non-Fiction)
+In the philosophy of aesthetics, the 'Ship of Theseus' paradox asks a fundamental question: if every plank of a ship is replaced over time, does it remain the same ship? In the world of art conservation, this is not merely a thought experiment; it is a daily ethical crisis. The modern mandate of conservation is ‘reversibility’, the idea that any intervention must be undoable. However, this clinical approach often masks a deeper, more uncomfortable reality: our obsession with the "original state" is largely a fantasy.
+When a museum acquires a fragmented Greek urn and fills the gaps with modern plaster, or when a Renaissance fresco is scrubbed of centuries of candle soot, we are constructing a simulation of what we believe the past looked like. We privilege the moment of creation over the narrative of duration. This "interventionist" approach suggests that the history of an object, the cracks, the fading, the clumsy repairs of previous centuries -- is merely damage to be rectified, rather than a legitimate part of the object’s biography.
+Critics argue that aggressive restoration creates a simulacrum, a pristine, deceptive copy that never actually existed in history. By erasing the patina of age, we strip artifacts of their temporal weight, rendering them flat and timeless. We demand that our history looks new, thereby denying the very passage of time we claim to revere. True authenticity, perhaps, lies not in the vibrant pigment of the first day, but in the honest degradation of the five-hundredth year.
+
+
+________________________________________
+
+
+QUESTION_INSTRUCTION:
+
+Read the two extracts above on the theme of restoration and memory, then answer questions 1–8.
+________________________________________
+
+QUESTION_TEXT:
+1. What central dilemma is shared by both Text A and Text B? 
+ANSWER_OPTIONS:
+A: The financial pressure to make historical artifacts look more appealing to modern buyers. 
+B: The technical difficulty of matching modern chemical solvents to ancient pigments. 
+C: The impossibility of knowing who the original creator of a work really was. 
+D: The conflict between preserving an object’s history versus returning it to its original appearance.
+CORRECT_ANSWER: "D"
+
+QUESTION_TEXT:
+2. In Text A, the phrase "tectonic disaster" is used to describe: 
+ANSWER_OPTIONS:
+A: The physical condition of the paint layers under magnification. 
+B: the emotional turmoil Elara feels about her work. 
+C: the chaotic state of the studio she is working in. 
+D: the historical tragedy depicted in the portrait’s background.
+CORRECT_ANSWER: "A"
+
+
+QUESTION_TEXT:
+3. Text B argues that the "modern mandate" of reversibility: 
+ANSWER_OPTIONS:
+A: prevents restorers from using the most durable materials available. 
+B: solves the ethical problems of restoration. 
+C: conceals the fact that we are creating a fantasy of the past. 
+D: is a practical necessity but an aesthetic failure.
+
+CORRECT_ANSWER: "C"
+
+
+
+
+QUESTION_TEXT:
+4. Which idea from Text B best explains Elara’s hesitation in Text A? 
+ANSWER_OPTIONS:
+A: Aggressive restoration creates a "simulacrum" of the subject. 
+B: We demand history looks new, denying the passage of time. 
+C: The "interventionist" approach privileges creation over duration. 
+D: The "Ship of Theseus" paradox suggests the painting is no longer real.
+CORRECT_ANSWER: "C"
+
+QUESTION_TEXT:
+5. In Text A, Elara’s reaction to the face emerging from the painting suggests that: 
+ANSWER_OPTIONS:
+A: The Victorian restorer had lacked the skill to paint realistic features. 
+B: The previous modification served a social or psychological purpose. 
+C: The solvent she is using is too strong and is damaging the original layer. 
+D: The original artist had intended to mock the subject of the portrait.
+CORRECT_ANSWER: "B"
+
+QUESTION_TEXT:
+6. The author of Text B would likely view the "Victorian layer" mentioned in Text A as: 
+ANSWER_OPTIONS:
+A: "damage to be rectified." 
+B: A "clinical approach" to art. 
+C: A "pristine, deceptive copy." 
+D: a "legitimate part of the object’s biography."
+CORRECT_ANSWER: "D"
+
+
+QUESTION_TEXT:
+7. Compare the tone of the two texts: 
+ANSWER_OPTIONS:
+A: Text A is confident and professional; Text B is hesitant and unsure. 
+B: Text A is reflective and sensory; Text B is critical and theoretical. 
+C: Text A is historically accurate; Text B is speculative and abstract. 
+D: Text A is clinical and detached; Text B is emotional and nostalgic.
+CORRECT_ANSWER: "B"
+
+QUESTION_TEXT:
+8. In the final sentence of Text B ("True authenticity... lies... in the honest degradation"), the author implies that: 
+ANSWER_OPTIONS:
+A: A faded, damaged object is more "truthful" than a restored one. 
+B: We should stop trying to repair historical objects altogether. 
+C: Modern museums are deceiving the public for profit. 
+D: ancient techniques were superior to modern conservation methods.
+
+CORRECT_ANSWER: "A"
+
+
+
+=== EXAM END ===
+Parse Syntax for naplan reading:
+=== EXAM START ===
+
+METADATA:
+CLASS: "Year 3"
+SUBJECT: "Reading"
+TOPIC: "Extract Matching"
+DIFFICULTY: "Medium"
+
+READING_MATERIAL:
+TEXT_TITLE: "Extract Collection"
+
+--- QUESTION START ---
+QUESTION_TYPE: 8
+
+QUESTION_TITLE:
+Extract Matching
+
+EXTRACTS:
+
+EXTRACT_A:
+Picnic at Hanging Rock
+They were off; the College already out of sight
+as the carriage rolled through the dry summer landscape.
+
+EXTRACT_B:
+The trees bent wildly in the storm as thunder shook the windows.
+
+EXTRACT_C:
+Sarah laughed loudly as the carnival lights flickered around her.
+
+EXTRACT_D:
+The old house stood silently at the edge of the empty road.
+
+QUESTIONS:
+
+QUESTION_TEXT:
+Which extract describes a feeling of fear?
+
+CORRECT_ANSWER:
+- B
+
+QUESTION_TEXT:
+Which extract describes excitement?
+
+CORRECT_ANSWER:
+- C
+
+--- QUESTION END ---
+
+=== EXAM END ===
+
